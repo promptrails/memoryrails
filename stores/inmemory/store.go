@@ -38,8 +38,8 @@ func (s *Store) Get(_ context.Context, id string) (*memoryrails.Memory, error) {
 	if !ok {
 		return nil, nil
 	}
-	copy := *m
-	return &copy, nil
+	cpy := *m
+	return &cpy, nil
 }
 
 func (s *Store) Search(_ context.Context, embedding []float32, opts memoryrails.SearchOptions) ([]memoryrails.SearchResult, error) {
@@ -74,9 +74,9 @@ func (s *Store) Search(_ context.Context, embedding []float32, opts memoryrails.
 
 		sim := cosineSimilarity(embedding, m.Embedding)
 		if sim >= threshold {
-			copy := *m
+			cpy := *m
 			results = append(results, memoryrails.SearchResult{
-				Memory:     &copy,
+				Memory:     &cpy,
 				Similarity: sim,
 			})
 		}
@@ -108,8 +108,8 @@ func (s *Store) List(_ context.Context, opts memoryrails.ListOptions) ([]*memory
 		if opts.Type != "" && m.Type != opts.Type {
 			continue
 		}
-		copy := *m
-		all = append(all, &copy)
+		cpy := *m
+		all = append(all, &cpy)
 	}
 
 	// Sort by created_at

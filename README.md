@@ -30,7 +30,7 @@ go get github.com/promptrails/memoryrails
 - **Importance scoring** — time-based decay + access frequency boost
 - **Semantic search** — cosine similarity with configurable threshold
 - **Access tracking** — automatic retrieval count and timestamp
-- **Zero framework dependency** — works with any Go LLM library
+- **Framework independent** — works with any Go LLM library
 
 ## Embedding Providers
 
@@ -47,6 +47,9 @@ go get github.com/promptrails/memoryrails
 | Store | Package | Use Case |
 |-------|---------|----------|
 | In-Memory | `stores/inmemory` | Development, testing, small scale (< 10K) |
+| PostgreSQL + pgvector | `stores/pgvector` | Production, HNSW indexing, GORM |
+| SQLite | `stores/sqlite` | Edge, CLI tools, single-machine |
+| Qdrant | `stores/qdrant` | High-performance vector DB, REST API |
 
 ## Documentation
 

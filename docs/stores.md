@@ -30,14 +30,108 @@ defer store.Close()
 - Thread-safe
 - Suitable for < 10K memories
 
+## PostgreSQL + pgvector
+
+Production-grade vector store using PostgreSQL with the pgvector extension. Uses GORM for database operations and HNSW indexing for fast approximate nearest neighbor search.
+
+```go
+import (
+    "github.com/promptrails/memoryrails/stores/pgvector"
+    "gorm.io/driver/postgres"
+    "gorm.io/gorm"
+)
+
+db, _ := gorm.Open(postgres.Open("host=localhost user=postgres dbname=myapp sslmode=disable"), &gorm.Config{})
+
+store, _ := pgvector.New(db, pgvector.WithDimensions(1536))
+defer store.Close()
+```
+
+**Characteristics:**
+- Persistent storage
+- HNSW indexing with cosine similarity (`<=>` operator)
+- Auto-creates pgvector extension and table
+- Type filtering via SQL WHERE clause
+- Suitable for millions of memories
+
+**Requirements:**
+- PostgreSQL 15+ with [pgvector extension](https://github.com/pgvector/pgvector)
+- `CREATE EXTENSION vector` (auto-created by the store)
+
+**Configuration:**
+
+```go
+// Custom vector dimensions (default: 1536 for OpenAI)
+store, _ := pgvector.New(db, pgvector.WithDimensions(768)) // for Ollama/Gemini
+```
+
+## SQLite
+
+Lightweight store using SQLite with in-process cosine similarity computation. No extensions required — embeddings are stored as JSON arrays and similarity is computed in Go.
+
+```go
+import (
+    "database/sql"
+    "github.com/promptrails/memoryrails/stores/sqlite"
+    _ "github.com/mattn/go-sqlite3"
+)
+
+db, _ := sql.Open("sqlite3", "./memories.db")
+store, _ := sqlite.New(db)
+defer store.Close()
+```
+
+**Characteristics:**
+- File-based persistence (or `:memory:` for in-process)
+- O(n) search (brute-force, computed in Go)
+- No extensions required
+- Suitable for edge, CLI tools, single-machine apps (< 100K memories)
+
+**In-memory SQLite (for testing):**
+
+```go
+db, _ := sql.Open("sqlite3", ":memory:")
+store, _ := sqlite.New(db)
+```
+
+## Qdrant
+
+High-performance vector database via Qdrant's REST API. Best for large-scale deployments with millions of vectors.
+
+```go
+import "github.com/promptrails/memoryrails/stores/qdrant"
+
+store, _ := qdrant.New("http://localhost:6333", "memories", 1536)
+defer store.Close()
+
+// With authentication (Qdrant Cloud)
+store, _ := qdrant.New("https://xyz.eu-west-1.aws.cloud.qdrant.io:6333", "memories", 1536,
+    qdrant.WithAPIKey("your-api-key"),
+)
+```
+
+**Characteristics:**
+- Auto-creates collection with cosine distance
+- Payload-based filtering (type, metadata)
+- Scroll-based listing
+- Suitable for millions+ memories
+
+**Requirements:**
+- Qdrant server ([Docker](https://qdrant.tech/documentation/quick-start/), Cloud, or self-hosted)
+
+```bash
+# Quick start with Docker
+docker run -p 6333:6333 qdrant/qdrant
+```
+
 ## Search Options
 
 ```go
 results, _ := store.Search(ctx, embedding, memoryrails.SearchOptions{
-    Limit:     10,       // max results
-    Threshold: 0.5,      // min similarity (0-1)
-    Type:      memoryrails.TypeFact, // filter by type
-    Metadata:  map[string]any{"user_id": "123"}, // filter by metadata
+    Limit:     10,                              // max results
+    Threshold: 0.5,                             // min similarity (0-1)
+    Type:      memoryrails.TypeFact,            // filter by type
+    Metadata:  map[string]any{"user_id": "123"}, // filter by metadata (inmemory only)
 })
 ```
 
@@ -52,19 +146,26 @@ memories, _ := store.List(ctx, memoryrails.ListOptions{
 })
 ```
 
+## Choosing a Store
+
+| Store | Persistence | Scale | Search | Dependencies |
+|-------|------------|-------|--------|--------------|
+| In-Memory | No | < 10K | Brute-force | None |
+| SQLite | File | < 100K | Brute-force | go-sqlite3 |
+| pgvector | PostgreSQL | Millions | HNSW (fast) | PostgreSQL + pgvector |
+| Qdrant | Server | Millions+ | HNSW (fast) | Qdrant server |
+
 ## Custom Store
 
-Implement the `Store` interface to add your own backend (pgvector, Qdrant, etc.):
+Implement the `Store` interface to add your own backend:
 
 ```go
-type PgVectorStore struct {
-    db *gorm.DB
-}
+type MyStore struct { /* ... */ }
 
-func (s *PgVectorStore) Search(ctx context.Context, embedding []float32, opts memoryrails.SearchOptions) ([]memoryrails.SearchResult, error) {
-    // Use pgvector's <=> operator for cosine distance
-    // SELECT *, 1 - (embedding <=> $1::vector) as similarity
-    // FROM memories WHERE similarity >= $2
-    // ORDER BY similarity DESC LIMIT $3
-}
+func (s *MyStore) Put(ctx context.Context, memory *memoryrails.Memory) error { /* ... */ }
+func (s *MyStore) Get(ctx context.Context, id string) (*memoryrails.Memory, error) { /* ... */ }
+func (s *MyStore) Search(ctx context.Context, embedding []float32, opts memoryrails.SearchOptions) ([]memoryrails.SearchResult, error) { /* ... */ }
+func (s *MyStore) List(ctx context.Context, opts memoryrails.ListOptions) ([]*memoryrails.Memory, error) { /* ... */ }
+func (s *MyStore) Delete(ctx context.Context, id string) error { /* ... */ }
+func (s *MyStore) Close() error { /* ... */ }
 ```

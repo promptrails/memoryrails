@@ -15,3 +15,4 @@ go get github.com/promptrails/memoryrails
 - [GitHub](https://github.com/promptrails/memoryrails)
 - [Go Reference](https://pkg.go.dev/github.com/promptrails/memoryrails)
 - [Getting Started](getting-started.md)
+

@@ -61,3 +61,45 @@ jobs:
 
       - name: Build
         run: go build ./...
+
+  integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: memoryrails_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      qdrant:
+        image: qdrant/qdrant:latest
+        ports:
+          - 6333:6333
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Wait for Qdrant
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:6333/healthz && break || sleep 1
+          done
+
+      - name: Integration Tests
+        env:
+          TEST_POSTGRES_DSN: "host=localhost port=5432 user=postgres password=postgres dbname=memoryrails_test sslmode=disable"
+          TEST_QDRANT_URL: "http://localhost:6333"
+        run: go test -tags integration -race -v ./stores/pgvector/ ./stores/qdrant/

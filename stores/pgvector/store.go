@@ -7,8 +7,9 @@ import (
 	"time"
 
 	"github.com/pgvector/pgvector-go"
-	"github.com/promptrails/memoryrails"
 	"gorm.io/gorm"
+
+	"github.com/promptrails/memoryrails"
 )
 
 // MemoryRecord is the GORM model for the memories table.

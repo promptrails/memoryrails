@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
-	"strings"
 	"time"
 
 	"github.com/promptrails/memoryrails"
@@ -286,10 +285,3 @@ func cosineSimilarity(a, b []float32) float64 {
 }
 
 // formatEmbedding converts float32 slice to JSON string for storage.
-func formatEmbedding(emb []float32) string {
-	parts := make([]string, len(emb))
-	for i, v := range emb {
-		parts[i] = fmt.Sprintf("%f", v)
-	}
-	return "[" + strings.Join(parts, ",") + "]"
-}

@@ -3,6 +3,7 @@ package qdrant
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -56,6 +57,7 @@ func New(baseURL, collection string, dims int, opts ...Option) (*Store, error) {
 
 func (s *Store) Put(ctx context.Context, mem *memoryrails.Memory) error {
 	payload := map[string]interface{}{
+		"original_id":      mem.ID,
 		"content":          mem.Content,
 		"type":             string(mem.Type),
 		"importance":       mem.Importance,
@@ -73,7 +75,7 @@ func (s *Store) Put(ctx context.Context, mem *memoryrails.Memory) error {
 	body := map[string]interface{}{
 		"points": []map[string]interface{}{
 			{
-				"id":      mem.ID,
+				"id":      toUUID(mem.ID),
 				"vector":  mem.Embedding,
 				"payload": payload,
 			},
@@ -87,7 +89,7 @@ func (s *Store) Put(ctx context.Context, mem *memoryrails.Memory) error {
 
 func (s *Store) Get(ctx context.Context, id string) (*memoryrails.Memory, error) {
 	resp, err := s.request(ctx, http.MethodGet,
-		fmt.Sprintf("/collections/%s/points/%s", s.collection, id), nil)
+		fmt.Sprintf("/collections/%s/points/%s", s.collection, toUUID(id)), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -211,7 +213,7 @@ func (s *Store) List(ctx context.Context, opts memoryrails.ListOptions) ([]*memo
 
 func (s *Store) Delete(ctx context.Context, id string) error {
 	body := map[string]interface{}{
-		"points": []string{id},
+		"points": []string{toUUID(id)},
 	}
 	_, err := s.request(ctx, http.MethodPost,
 		fmt.Sprintf("/collections/%s/points/delete", s.collection), body)
@@ -268,9 +270,22 @@ func (s *Store) request(ctx context.Context, method, path string, body interface
 	return respBody, nil
 }
 
+// toUUID generates a deterministic UUID v5 from a string ID using SHA-256.
+func toUUID(id string) string {
+	h := sha256.Sum256([]byte(id))
+	return fmt.Sprintf("%08x-%04x-%04x-%04x-%012x",
+		h[0:4], h[4:6], h[6:8], h[8:10], h[10:16])
+}
+
 func payloadToMemory(id string, vector []float32, payload map[string]interface{}) *memoryrails.Memory {
+	// Use original_id from payload if available, otherwise use Qdrant UUID
+	memID := id
+	if v, ok := payload["original_id"].(string); ok {
+		memID = v
+	}
+
 	mem := &memoryrails.Memory{
-		ID:        id,
+		ID:        memID,
 		Embedding: vector,
 	}
 

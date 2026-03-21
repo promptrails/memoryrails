@@ -67,6 +67,7 @@ Full docs: [promptrails.github.io/memoryrails](https://promptrails.github.io/mem
 - [LangRails](https://github.com/promptrails/langrails) — Unified LLM provider interface
 - [GuardRails](https://github.com/promptrails/guardrails) — Content safety scanning
 - **MemoryRails** — Agent memory management
+- [MediaRails](https://github.com/promptrails/mediarails) — AI media generation
 
 ## License
 

@@ -71,4 +71,4 @@ Full docs: [promptrails.github.io/memoryrails](https://promptrails.github.io/mem
 
 ## License
 
-MIT — [PromptRails](https://promptrails.com)
+MIT — [PromptRails](https://promptrails.ai)

@@ -24,11 +24,12 @@ var modelDimensions = map[string]int{
 
 // Embedder generates embeddings using OpenAI's API.
 type Embedder struct {
-	apiKey  string
-	model   string
-	baseURL string
-	client  *http.Client
-	dims    int
+	apiKey       string
+	model        string
+	baseURL      string
+	client       *http.Client
+	dims         int
+	dimsOverride int
 }
 
 // Option configures the embedder.
@@ -52,6 +53,17 @@ func WithBaseURL(url string) Option {
 // WithHTTPClient sets a custom HTTP client.
 func WithHTTPClient(client *http.Client) Option {
 	return func(e *Embedder) { e.client = client }
+}
+
+// WithDimensions truncates the returned vector to the given length. Only
+// supported by text-embedding-3-* models; the value is sent to the API via
+// the `dimensions` request field and the embedder's reported dimensions are
+// updated to match. Passing 0 leaves the request unchanged (full model size).
+func WithDimensions(dims int) Option {
+	return func(e *Embedder) {
+		e.dims = dims
+		e.dimsOverride = dims
+	}
 }
 
 // New creates a new OpenAI embedder.
@@ -79,8 +91,9 @@ func (e *Embedder) Embed(ctx context.Context, text string) ([]float32, error) {
 
 func (e *Embedder) EmbedBatch(ctx context.Context, texts []string) ([][]float32, error) {
 	reqBody, err := json.Marshal(embeddingRequest{
-		Input: texts,
-		Model: e.model,
+		Input:      texts,
+		Model:      e.model,
+		Dimensions: e.dimsOverride,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("openai embedder: marshal error: %w", err)
@@ -123,8 +136,9 @@ func (e *Embedder) EmbedBatch(ctx context.Context, texts []string) ([][]float32,
 func (e *Embedder) Dimensions() int { return e.dims }
 
 type embeddingRequest struct {
-	Input []string `json:"input"`
-	Model string   `json:"model"`
+	Input      []string `json:"input"`
+	Model      string   `json:"model"`
+	Dimensions int      `json:"dimensions,omitempty"`
 }
 
 type embeddingResponse struct {

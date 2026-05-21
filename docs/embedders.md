@@ -19,12 +19,16 @@ e := openai.New("sk-...")
 
 // Large model
 e := openai.New("sk-...", openai.WithModel(openai.ModelLarge))
+
+// Truncated output (text-embedding-3-* only) — useful when your vector
+// column is shorter than the model's native size.
+e := openai.New("sk-...", openai.WithDimensions(768))
 ```
 
 | Model | Dimensions | Cost |
 |-------|-----------|------|
-| text-embedding-3-small | 1536 | Lower |
-| text-embedding-3-large | 3072 | Higher |
+| text-embedding-3-small | 1536 (truncatable) | Lower |
+| text-embedding-3-large | 3072 (truncatable) | Higher |
 
 ## Ollama (Local)
 

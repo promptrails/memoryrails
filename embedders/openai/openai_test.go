@@ -103,3 +103,47 @@ func TestEmbedder_Options(t *testing.T) {
 		t.Error("expected large model")
 	}
 }
+
+func TestEmbedder_WithDimensions(t *testing.T) {
+	var captured embeddingRequest
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_ = json.NewDecoder(r.Body).Decode(&captured)
+		resp := embeddingResponse{
+			Data: []embeddingData{{Embedding: make([]float32, 768), Index: 0}},
+		}
+		_ = json.NewEncoder(w).Encode(resp)
+	}))
+	defer server.Close()
+
+	e := New("key", WithBaseURL(server.URL), WithDimensions(768))
+	if e.Dimensions() != 768 {
+		t.Errorf("expected reported dims 768, got %d", e.Dimensions())
+	}
+
+	if _, err := e.Embed(context.Background(), "hello"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if captured.Dimensions != 768 {
+		t.Errorf("expected request dimensions 768, got %d", captured.Dimensions)
+	}
+}
+
+func TestEmbedder_DimensionsOmittedByDefault(t *testing.T) {
+	var raw map[string]interface{}
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_ = json.NewDecoder(r.Body).Decode(&raw)
+		resp := embeddingResponse{
+			Data: []embeddingData{{Embedding: []float32{0.1, 0.2}, Index: 0}},
+		}
+		_ = json.NewEncoder(w).Encode(resp)
+	}))
+	defer server.Close()
+
+	e := New("key", WithBaseURL(server.URL))
+	if _, err := e.Embed(context.Background(), "hello"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, present := raw["dimensions"]; present {
+		t.Errorf("expected dimensions to be omitted when not set, got %v", raw["dimensions"])
+	}
+}

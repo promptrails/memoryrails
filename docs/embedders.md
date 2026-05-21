@@ -67,6 +67,42 @@ import "github.com/promptrails/memoryrails/embedders/voyage"
 e := voyage.New("your-api-key") // voyage-3, 1024d
 ```
 
+## Fireworks AI
+
+```go
+import "github.com/promptrails/memoryrails/embedders/fireworks"
+
+e := fireworks.New("your-api-key") // nomic-embed-text-v1.5, 768d
+
+// Different model
+e := fireworks.New("your-api-key",
+    fireworks.WithModel("thenlper/gte-large"),
+    fireworks.WithDimensions(1024),
+)
+```
+
+## OpenRouter
+
+Routes embedding requests through OpenRouter to any supported provider model.
+
+```go
+import "github.com/promptrails/memoryrails/embedders/openrouter"
+
+e := openrouter.New("your-api-key") // openai/text-embedding-3-small, 1536d
+
+// Route to a different model
+e := openrouter.New("your-api-key",
+    openrouter.WithModel("openai/text-embedding-3-large"),
+    openrouter.WithDimensions(3072),
+)
+
+// Optional attribution headers (recommended by OpenRouter)
+e := openrouter.New("your-api-key",
+    openrouter.WithHTTPReferer("https://your-app.com"),
+    openrouter.WithAppTitle("Your App Name"),
+)
+```
+
 ## Custom Embedder
 
 Implement the `Embedder` interface:

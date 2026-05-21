@@ -25,7 +25,7 @@ go get github.com/promptrails/memoryrails
 ## Features
 
 - **5 memory types** — conversation, fact, procedure, episodic, semantic
-- **5 embedding providers** — OpenAI, Ollama, Cohere, Gemini, Voyage AI
+- **7 embedding providers** — OpenAI, Ollama, Cohere, Gemini, Voyage AI, Fireworks, OpenRouter
 - **Pluggable vector stores** — in-memory (included), pgvector, SQLite, Qdrant
 - **Importance scoring** — time-based decay + access frequency boost
 - **Semantic search** — cosine similarity with configurable threshold
@@ -41,6 +41,8 @@ go get github.com/promptrails/memoryrails
 | Cohere | `embedders/cohere` | embed-v4.0 (1024d) |
 | Gemini | `embedders/gemini` | text-embedding-004 (768d) |
 | Voyage AI | `embedders/voyage` | voyage-3 (1024d) |
+| Fireworks | `embedders/fireworks` | nomic-embed-text-v1.5 (768d), gte-large, bge-large-en-v1.5 |
+| OpenRouter | `embedders/openrouter` | Routes to any OpenRouter-supported embedding model |
 
 ## Vector Stores
 

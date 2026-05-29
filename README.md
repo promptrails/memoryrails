@@ -25,8 +25,8 @@ go get github.com/promptrails/memoryrails
 ## Features
 
 - **5 memory types** — conversation, fact, procedure, episodic, semantic
-- **7 embedding providers** — OpenAI, Ollama, Cohere, Gemini, Voyage AI, Fireworks, OpenRouter
-- **Pluggable vector stores** — in-memory (included), pgvector, SQLite, Qdrant
+- **8 embedding providers** — OpenAI, Ollama, Cohere, Gemini, Voyage AI, Fireworks, OpenRouter, Amazon Bedrock
+- **Pluggable vector stores** — in-memory (included), pgvector, SQLite, Qdrant, Amazon OpenSearch
 - **Importance scoring** — time-based decay + access frequency boost
 - **Semantic search** — cosine similarity with configurable threshold
 - **Access tracking** — automatic retrieval count and timestamp
@@ -43,6 +43,7 @@ go get github.com/promptrails/memoryrails
 | Voyage AI | `embedders/voyage` | voyage-3 (1024d) |
 | Fireworks | `embedders/fireworks` | nomic-embed-text-v1.5 (768d), gte-large, bge-large-en-v1.5 |
 | OpenRouter | `embedders/openrouter` | Routes to any OpenRouter-supported embedding model |
+| Amazon Bedrock | `embedders/bedrock` | Titan Text v2 (1024d, configurable), Titan v1 (1536d), Cohere Embed v3 (1024d) — AWS SigV4 |
 
 ## Vector Stores
 
@@ -52,6 +53,7 @@ go get github.com/promptrails/memoryrails
 | PostgreSQL + pgvector | `stores/pgvector` | Production, HNSW indexing, GORM |
 | SQLite | `stores/sqlite` | Edge, CLI tools, single-machine |
 | Qdrant | `stores/qdrant` | High-performance vector DB, REST API |
+| Amazon OpenSearch | `stores/opensearch` | AWS-managed k-NN search; Serverless (`aoss`) or domains (`es`), AWS SigV4 |
 
 ## Documentation
 

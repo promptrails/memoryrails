@@ -124,6 +124,41 @@ store, _ := qdrant.New("https://xyz.eu-west-1.aws.cloud.qdrant.io:6333", "memori
 docker run -p 6333:6333 qdrant/qdrant
 ```
 
+## Amazon OpenSearch
+
+AWS-managed k-NN vector search over the OpenSearch REST API. Works with both
+OpenSearch Serverless (`aoss`, the default) and managed domains (`es`).
+Authenticates with AWS Signature V4 (no `aws-sdk-go` dependency); region and
+credentials default to the standard AWS environment variables.
+
+```go
+import "github.com/promptrails/memoryrails/stores/opensearch"
+
+// OpenSearch Serverless collection (service "aoss")
+store, _ := opensearch.New(
+    "https://abc123.us-east-1.aoss.amazonaws.com",
+    "memories",
+    1024, // embedding dimensions
+    opensearch.WithRegion("us-east-1"),
+)
+defer store.Close()
+
+// Managed OpenSearch domain
+store, _ := opensearch.New(endpoint, "memories", 1024,
+    opensearch.WithRegion("us-east-1"),
+    opensearch.WithService("es"),
+)
+```
+
+**Characteristics:**
+- Auto-creates the index with a `knn_vector` mapping (engine/space configurable via `WithKNNEngine`)
+- Term-based filtering on type and metadata
+- `from`/`size` listing with sort
+- Search `Similarity` is OpenSearch's normalized `_score`, not raw cosine
+
+**Requirements:**
+- An OpenSearch Serverless collection or managed domain, plus IAM credentials with data-access permissions
+
 ## Search Options
 
 ```go

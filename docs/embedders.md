@@ -107,6 +107,37 @@ e := openrouter.New("your-api-key",
 )
 ```
 
+## Amazon Bedrock
+
+Uses Bedrock's InvokeModel API for the Titan and Cohere embedding families.
+Authenticates with AWS Signature V4 (no `aws-sdk-go` dependency); region and
+credentials default to the standard AWS environment variables.
+
+```go
+import "github.com/promptrails/memoryrails/embedders/bedrock"
+
+// Titan Text Embeddings V2 (1024d), credentials from AWS_* env vars
+e := bedrock.New()
+
+// Explicit region/credentials and a reduced dimensionality (Titan V2: 256/512/1024)
+e := bedrock.New(
+    bedrock.WithRegion("us-east-1"),
+    bedrock.WithStaticCredentials(accessKeyID, secretAccessKey, ""),
+    bedrock.WithModel(bedrock.ModelTitanV2),
+    bedrock.WithDimensions(512),
+)
+
+// Cohere Embed on Bedrock (batches the whole input in one request)
+e := bedrock.New(
+    bedrock.WithModel(bedrock.ModelCohereEnglish),
+    bedrock.WithInputType("search_document"),
+)
+```
+
+Titan models embed one input per request; Cohere models embed a batch in a
+single request. Temporary credentials are supported via `AWS_SESSION_TOKEN` or
+the third argument of `WithStaticCredentials`.
+
 ## Custom Embedder
 
 Implement the `Embedder` interface:

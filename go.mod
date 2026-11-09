@@ -3,7 +3,7 @@ module github.com/promptrails/memoryrails
 go 1.27.3
 
 require (
-	github.com/mattn/go-sqlite3 v1.14.52
+	github.com/mattn/go-sqlite3 v1.14.53
 	github.com/pgvector/pgvector-go v0.4.1
 	gorm.io/driver/postgres v1.6.3
 	gorm.io/gorm v1.31.2
